@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>jQuery 이벤트 처리</title>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script>
+        $(document).ready(function () {
+            $('button').click(function () {
+                $('#l1').text('버튼을 눌렀습니다.');
+            });
+            $('a').click(function (event) {
+                event.preventDefault(); // 기본 동작 방지
+                alert('링크 클릭을 막았습니다.');
+            });
+            $('p').hover(
+                function () {
+                    $(this).css('background-color', 'lightblue'); //마우스 위 상태
+                },
+                function () {
+                    $(this).css('background-color', '');
+                }
+            );
+            $('button').click(function () {
+                $('img').fadeToggle(1000);
+            });
+        });
+    </script>
+</head>
+<body>
+    <h1>jQuery 이벤트 처리</h1>
+    <p><a href="https://lms.suwings.syu.ac.kr/ilos/main/main_form.acl">lms</a></p>
+    <p id="l1">인지융</p>
+     <p>인지융</p>
+    <button type="button">누름</button>
+    <img src="https://lms.suwings.syu.ac.kr/ilosfiles/ocw-image/623.jpg"><br>
+</body>
+</html>

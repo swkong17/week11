@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<style>
+    h1{ text-align: center;}
+    .dd{ width: 100%; height: 30px; text-align: right; box-sizing: border-box;}
+    .display-row{ display: flex; gap: 8px; margin-bottom: 8px;}
+    .display-box{ flex: 1; min-width: 0; text-align: left;}
+    .display-box label{ display: block; margin-bottom: 3px;}
+    .num{ width: 50px; height: 50px; background-color: lightblue; border: 1px solid black; font-size: 20px;}
+    .op{ width: 50px; height: 50px; background-color: lightgreen; border: 1px solid black; font-size: 20px;}
+    #calc{ width: 430px; max-width: 100%; margin: 0 auto; text-align: center;}   
+    .input[type="button"]{ margin: 2px; text-align: center;vertical-align: middle; }
+    #calc input[type="button"]{ cursor: pointer; transition: transform 0.1s, box-shadow 0.1s, filter 0.1s; }
+    #calc input[type="button"]:active{ transform: translateY(2px) scale(0.96); filter: brightness(0.88); box-shadow: inset 0 2px 4px #0003; }
+    
+</style>
+<script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+<script>
+    $(document).ready(function () {
+        var firstNumber = 0;
+        var currentNumber = '';
+        var operator = '';
+        var formula = '';
+
+        $('.num').click(function () {
+            var number = $(this).val();
+
+            if ($('#dd2').val() !== '') {
+                formula = '';
+                currentNumber = '';
+                firstNumber = 0;
+                operator = '';
+                $('#dd1').val('');
+                $('#dd2').val('');
+            }
+
+            currentNumber = currentNumber + number;
+            formula = formula + number;
+            $('#dd1').val(formula);
+        });
+
+        $('.op').click(function () {
+            var operation = $(this).val();
+            var secondNumber = Number(currentNumber);
+            var result;
+
+            if (operation === 'C') {
+                $('#dd1').val('');
+                $('#dd2').val('');
+                firstNumber = 0;
+                operator = '';
+                formula = '';
+                currentNumber = '';
+                return;
+            }
+
+            if (operation === '=') {
+                if (operator === '' || currentNumber === '') {
+                    return;
+                }
+
+                if (operator === '+') {
+                    result = firstNumber + secondNumber;
+                } else if (operator === '-') {
+                    result = firstNumber - secondNumber;
+                } else if (operator === '*') {
+                    result = firstNumber * secondNumber;
+                } else if (operator === '/') {
+                    if (secondNumber === 0) {
+                        result = 'Error';
+                    } else {
+                        result = firstNumber / secondNumber;
+                    }
+                }
+
+                $('#dd2').val(result);
+                operator = '';
+                return;
+            }
+
+            if (formula === '' || operator !== '' || $('#dd2').val() !== '') {
+                return;
+            }
+
+            firstNumber = Number(currentNumber);
+            operator = operation;
+            currentNumber = '';
+            formula = formula + ' ' + operation + ' ';
+            $('#dd1').val(formula);
+        });
+    });
+</script>
+<body>
+    <h1>계산기(Calculator)</h1>
+    <div id="calc">         
+        <div class="display-row">
+            <div class="display-box">
+                <label for="dd1">수식</label>
+                <input type="text" class="dd" id="dd1" readonly>
+            </div>
+            <div class="display-box">
+                <label for="dd2">값</label>
+                <input type="text" class="dd" id="dd2" readonly>
+            </div>
+        </div>
+        <input type="button" class="num" value="7">
+        <input type="button" class="num" value="8">
+        <input type="button" class="num" value="9">
+        <input type="button" class="op" value="+">
+        <br>
+        <input type="button" class="num" value="4">
+        <input type="button" class="num" value="5">
+        <input type="button" class="num" value="6">
+        <input type="button" class="op" value="-">
+        <br>      
+        <input type="button" class="num" value="1">   
+        <input type="button" class="num" value="2">
+        <input type="button" class="num" value="3">
+        <input type="button" class="op" value="*">
+        <br>
+        <input type="button" class="num" value="0">
+        <input type="button" class="op" value="C">
+        <input type="button" class="op" value="=">
+        <input type="button" class="op" value="/">
+    </div>
+</body>
+</html>
