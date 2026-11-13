@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>공학용 계산기</title>
+</head>
+<style>
+    *{ box-sizing: border-box;}
+    body{ min-height: 100vh; margin: 0; padding: 40px 16px; overflow-x: hidden; background: linear-gradient(135deg, #eef7ff, #f7f3ff); color: #203047; font-family: Arial, sans-serif;}
+    h1{ position: relative; z-index: 1; margin: 0 0 20px; text-align: center;}
+    .dd{ width: 100%; height: 38px; padding: 6px 9px; border: 1px solid #cbd5e1; border-radius: 6px; background: #f8fafc; font-size: 16px; text-align: right;}
+    .display-row{ display: flex; gap: 10px; margin-bottom: 14px;}
+    .display-box{ flex: 1; min-width: 0; text-align: left;}
+    .display-box label{ display: block; margin-bottom: 4px; font-size: 13px; font-weight: bold;}
+    #calc{ position: relative; z-index: 1; width: 410px; max-width: 100%; margin: 0 auto; padding: 20px; border: 1px solid #dce5ef; border-radius: 16px; background: rgb(255 255 255 / 92%); box-shadow: 0 16px 40px #36516f24;}
+    #keypad{ display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px;}
+    #keypad input[type="button"]{ width: 100%; height: 54px; border: 1px solid #33415533; border-radius: 9px; color: #193047; font-size: 18px; font-weight: bold; cursor: pointer; transition: transform 0.12s, filter 0.12s, box-shadow 0.12s;}
+    #keypad .num{ background: #a9dcff;}
+    #keypad .op, #keypad .trig{ background: #b8edc4;}
+    #keypad input[type="button"]:hover{ filter: brightness(0.96); box-shadow: 0 3px 8px #20304720;}
+    #keypad input[type="button"]:active{ transform: translateY(2px) scale(0.97); filter: brightness(0.88);}
+    #keypad [value="="]{ grid-column: span 4; background: #8edca5;}
+    .math-background{ position: fixed; z-index: 0; inset: 0; overflow: hidden; pointer-events: none; color: #7594b8;}
+    .math-symbol{ position: absolute; display: block; opacity: 0.23; font-size: 42px; font-weight: bold; animation: drift 12s ease-in-out infinite alternate;}
+    .math-symbol:nth-child(1){ top: 10%; left: 8%; font-size: 54px;}
+    .math-symbol:nth-child(2){ top: 18%; left: 82%; animation-delay: -3s;}
+    .math-symbol:nth-child(3){ top: 70%; left: 12%; font-size: 64px; animation-delay: -5s;}
+    .math-symbol:nth-child(4){ top: 78%; left: 86%; animation-delay: -1s;}
+    .math-symbol:nth-child(5){ top: 43%; left: 91%; font-size: 58px; animation-delay: -7s;}
+    .math-symbol:nth-child(6){ top: 88%; left: 48%; animation-delay: -4s;}
+    .math-symbol:nth-child(7){ top: 5%; left: 52%; animation-delay: -8s;}
+    .math-symbol:nth-child(8){ top: 50%; left: 3%; animation-delay: -2s;}
+    @keyframes drift{ from{ transform: translateY(-10px) rotate(-8deg);} to{ transform: translateY(18px) rotate(10deg);}}
+    @media (prefers-reduced-motion: reduce){ .math-symbol{ animation: none;} }
+</style>
+<script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+<script>
+    $(document).ready(function () {
+        var firstNumber = 0;
+        var currentNumber = '';
+        var operator = '';
+        var formula = '';
+
+        function showFunctionResult(expression, result) {
+            $('#dd1').val(expression);
+            $('#dd2').val(typeof result === 'number' && Number.isFinite(result) ? result.toFixed(4) : 'Error');
+            firstNumber = 0;
+            currentNumber = '';
+            operator = '';
+            formula = '';
+        }
+
+        $('.num').click(function () {
+            var number = $(this).val();
+            var displayedNumber = number;
+
+            if ($('#dd2').val() !== '') {
+                formula = '';
+                currentNumber = '';
+                firstNumber = 0;
+                operator = '';
+                $('#dd1').val('');
+                $('#dd2').val('');
+            }
+
+            if (number === '.') {
+                if (currentNumber.indexOf('.') !== -1) {
+                    return;
+                }
+                if (currentNumber === '') {
+                    currentNumber = '0.';
+                    displayedNumber = '0.';
+                } else {
+                    currentNumber = currentNumber + '.';
+                }
+            } else {
+                currentNumber = currentNumber + number;
+            }
+            formula = formula + displayedNumber;
+            $('#dd1').val(formula);
+        });
+
+        $('.trig').click(function () {
+            var angleText = currentNumber !== '' ? currentNumber : $('#dd2').val();
+            var angle = Number(angleText);
+            var operation = $(this).val();
+            var radians;
+            var result;
+
+            if (angleText === '' || !Number.isFinite(angle)) {
+                showFunctionResult(operation + '(°)', 'Error');
+                return;
+            }
+
+            radians = angle * Math.PI / 180;
+            if (operation === 'sin') {
+                result = Math.sin(radians);
+            } else if (operation === 'cos') {
+                result = Math.cos(radians);
+            } else {
+                result = Math.abs(Math.cos(radians)) < 1e-12 ? 'Error' : Math.tan(radians);
+            }
+
+            showFunctionResult(operation + '(' + angle + '°)', result);
+        });
+
+        $('.op').click(function () {
+            var operation = $(this).val();
+            var secondNumber = Number(currentNumber);
+            var result;
+
+            if (operation === 'C') {
+                $('#dd1').val('');
+                $('#dd2').val('');
+                firstNumber = 0;
+                operator = '';
+                formula = '';
+                currentNumber = '';
+                return;
+            }
+
+            if (operation === '=') {
+                if (operator === '' || currentNumber === '') {
+                    return;
+                }
+
+                if (operator === '+') {
+                    result = firstNumber + secondNumber;
+                } else if (operator === '-') {
+                    result = firstNumber - secondNumber;
+                } else if (operator === '*') {
+                    result = firstNumber * secondNumber;
+                } else if (operator === '/') {
+                    if (secondNumber === 0) {
+                        result = 'Error';
+                    } else {
+                        result = firstNumber / secondNumber;
+                    }
+                } else if (operator === 'log') {
+                    if (firstNumber <= 0 || firstNumber === 1 || secondNumber <= 0) {
+                        result = 'Error';
+                    } else {
+                        result = (Math.log(secondNumber) / Math.log(firstNumber)).toFixed(4);
+                    }
+                }
+
+                $('#dd2').val(result);
+                operator = '';
+                return;
+            }
+
+            if (formula === '' || operator !== '' || $('#dd2').val() !== '') {
+                return;
+            }
+
+            firstNumber = Number(currentNumber);
+            operator = operation;
+            currentNumber = '';
+            formula = formula + ' ' + operation + ' ';
+            $('#dd1').val(formula);
+        });
+    });
+</script>
+<body>
+    <div class="math-background" aria-hidden="true">
+        <span class="math-symbol">+</span>
+        <span class="math-symbol">π</span>
+        <span class="math-symbol">√</span>
+        <span class="math-symbol">÷</span>
+        <span class="math-symbol">∑</span>
+        <span class="math-symbol">∫</span>
+        <span class="math-symbol">×</span>
+        <span class="math-symbol">−</span>
+    </div>
+    <h1>공학용계산기(e-Calculator)</h1>
+    <div id="calc">
+        <div class="display-row">
+            <div class="display-box">
+                <label for="dd1">수식</label>
+                <input type="text" class="dd" id="dd1" readonly>
+            </div>
+            <div class="display-box">
+                <label for="dd2">값</label>
+                <input type="text" class="dd" id="dd2" readonly>
+            </div>
+        </div>
+        <div id="keypad">
+            <input type="button" class="num" value="7">
+            <input type="button" class="num" value="8">
+            <input type="button" class="num" value="9">
+            <input type="button" class="op" value="+">
+            <input type="button" class="num" value="4">
+            <input type="button" class="num" value="5">
+            <input type="button" class="num" value="6">
+            <input type="button" class="op" value="-">
+            <input type="button" class="num" value="1">
+            <input type="button" class="num" value="2">
+            <input type="button" class="num" value="3">
+            <input type="button" class="op" value="*">
+            <input type="button" class="num" value="0">
+            <input type="button" class="num" value=".">
+            <input type="button" class="op" value="C">
+            <input type="button" class="op" value="/">
+            <input type="button" class="trig" value="sin">
+            <input type="button" class="trig" value="cos">
+            <input type="button" class="trig" value="tan">
+            <input type="button" class="op" value="log">
+            <input type="button" class="op" value="=">
+        </div>
+    </div>
+</body>
+</html>
